@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to validate user data in document
+    function hasValidUserId() {
+      return request.resource.data.userId == request.auth.uid;
+    }
+    
+    // User data rules - all data is scoped under /users/{userId}
+    match /users/{userId} {
+      // Allow users to read/write their own metadata
+      match /metadata/{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      // Profiles collection
+      match /profiles/{profileId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidUserId();
+        allow update: if isOwner(userId) && hasValidUserId();
+        allow delete: if isOwner(userId);
+      }
+      
+      // Jobs collection
+      match /jobs/{jobId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidUserId();
+        allow update: if isOwner(userId) && hasValidUserId();
+        allow delete: if isOwner(userId);
+      }
+      
+      // Cover letters collection
+      match /coverLetters/{letterId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidUserId();
+        allow update: if isOwner(userId) && hasValidUserId();
+        allow delete: if isOwner(userId);
+      }
+    }
+    
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

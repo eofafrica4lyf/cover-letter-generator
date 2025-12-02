@@ -27,7 +27,23 @@ export function ProfileManager() {
     try {
       const existingProfile = await ProfileStorage.read();
       if (existingProfile) {
-        setProfile(existingProfile);
+        // Ensure arrays are properly initialized
+        const normalizedProfile = {
+          ...existingProfile,
+          workExperience: Array.isArray(existingProfile.workExperience) 
+            ? existingProfile.workExperience 
+            : [],
+          education: Array.isArray(existingProfile.education) 
+            ? existingProfile.education 
+            : [],
+          skills: Array.isArray(existingProfile.skills) 
+            ? existingProfile.skills 
+            : [],
+          projects: Array.isArray(existingProfile.projects) 
+            ? existingProfile.projects 
+            : [],
+        };
+        setProfile(normalizedProfile);
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
