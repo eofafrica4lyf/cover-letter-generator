@@ -42,6 +42,13 @@ export interface AcademicContext {
   gpa?: string;
 }
 
+export interface Project {
+  id: string;
+  title: string;
+  completionDate: string; // Format: "YYYY-MM" (e.g., "2024-06")
+  description: string;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -51,6 +58,7 @@ export interface UserProfile {
   workExperience: WorkExperience[];
   education: Education[];
   skills: string[];
+  projects: Project[];
   academicContext?: AcademicContext;
   createdAt: Date;
   updatedAt: Date;

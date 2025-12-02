@@ -161,6 +161,15 @@ GPA: ${ac.gpa || 'N/A'}`;
     });
   }
 
+  if (userProfile.projects && userProfile.projects.length > 0) {
+    context += '\n\nPROJECTS:';
+    userProfile.projects.forEach((proj: any, idx: number) => {
+      const completionDate = proj.completionDate ? new Date(proj.completionDate + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Date not specified';
+      context += `\n${idx + 1}. ${proj.title} (Completed: ${completionDate})`;
+      context += `\n   ${proj.description}`;
+    });
+  }
+
   return context;
 }
 

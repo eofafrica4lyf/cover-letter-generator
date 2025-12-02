@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { UserProfile, WorkExperience, Education } from '../types';
+import type { UserProfile, WorkExperience, Education, Project } from '../types';
 import { ProfileStorage } from '../services/storage';
 import { validateProfile } from '../utils/validation';
 
@@ -12,6 +12,7 @@ export function ProfileManager() {
     workExperience: [],
     education: [],
     skills: [],
+    projects: [],
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,6 +59,7 @@ export function ProfileManager() {
         workExperience: profile.workExperience || [],
         education: profile.education || [],
         skills: profile.skills || [],
+        projects: profile.projects || [],
         academicContext: profile.academicContext,
         createdAt: profile.createdAt || new Date(),
         updatedAt: new Date(),
@@ -142,6 +144,37 @@ export function ProfileManager() {
     setProfile(prev => ({
       ...prev,
       education: prev.education?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addProject = () => {
+    setProfile(prev => ({
+      ...prev,
+      projects: [
+        ...(prev.projects || []),
+        {
+          id: crypto.randomUUID(),
+          title: '',
+          completionDate: '',
+          description: '',
+        }
+      ]
+    }));
+  };
+
+  const updateProject = (index: number, field: keyof Project, value: any) => {
+    setProfile(prev => ({
+      ...prev,
+      projects: prev.projects?.map((proj, i) => 
+        i === index ? { ...proj, [field]: value } : proj
+      )
+    }));
+  };
+
+  const removeProject = (index: number) => {
+    setProfile(prev => ({
+      ...prev,
+      projects: prev.projects?.filter((_, i) => i !== index)
     }));
   };
 
@@ -329,6 +362,54 @@ export function ProfileManager() {
               className="text-red-500 hover:text-red-700 mt-2"
             >
               Remove
+            </button>
+          </div>
+        ))}
+      </section>
+
+      {/* Projects */}
+      <section className="mb-8 bg-white p-6 rounded-lg shadow">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Projects</h2>
+          <button
+            onClick={addProject}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Add Project
+          </button>
+        </div>
+
+        {profile.projects?.map((project, index) => (
+          <div key={project.id} className="mb-4 p-4 border rounded-md">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+              <input
+                type="text"
+                placeholder="Project Title"
+                value={project.title}
+                onChange={(e) => updateProject(index, 'title', e.target.value)}
+                className="px-3 py-2 border rounded-md"
+              />
+              <input
+                type="month"
+                placeholder="Completion Date"
+                value={project.completionDate}
+                onChange={(e) => updateProject(index, 'completionDate', e.target.value)}
+                className="px-3 py-2 border rounded-md"
+              />
+            </div>
+            <textarea
+              placeholder="Project Description"
+              value={project.description}
+              onChange={(e) => updateProject(index, 'description', e.target.value)}
+              className="w-full px-3 py-2 border rounded-md mb-3"
+              rows={3}
+            />
+
+            <button
+              onClick={() => removeProject(index)}
+              className="text-red-500 hover:text-red-700"
+            >
+              Remove Project
             </button>
           </div>
         ))}
