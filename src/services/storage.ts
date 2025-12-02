@@ -14,16 +14,41 @@ function getCurrentUserId(): string {
   return user.uid;
 }
 
+// Helper to remove undefined values (Firestore doesn't allow them)
+function removeUndefined<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefined(item)) as unknown as T;
+  }
+
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = removeUndefined(value);
+      }
+    }
+    return cleaned as T;
+  }
+
+  return obj;
+}
+
 // Profile Storage Service
 export class ProfileStorage {
   static async create(profile: UserProfile): Promise<void> {
     try {
       const userId = getCurrentUserId();
+      // Remove undefined values before saving to Firestore
+      const cleanProfile = removeUndefined(profile);
       await firestoreService.create<UserProfile & FirestoreDocument>(
         'profiles',
         userId,
         profile.id,
-        profile
+        cleanProfile
       );
     } catch (error) {
       if (error instanceof Error && error.message.includes('quota')) {
@@ -65,11 +90,13 @@ export class CoverLetterStorage {
   static async create(letter: CoverLetter): Promise<void> {
     try {
       const userId = getCurrentUserId();
+      // Remove undefined values before saving to Firestore
+      const cleanLetter = removeUndefined(letter);
       await firestoreService.create<CoverLetter & FirestoreDocument>(
         'coverLetters',
         userId,
         letter.id,
-        letter
+        cleanLetter
       );
     } catch (error) {
       if (error instanceof Error && error.message.includes('quota')) {
@@ -203,11 +230,13 @@ export class JobPostingStorage {
   static async create(jobPosting: JobPosting): Promise<void> {
     try {
       const userId = getCurrentUserId();
+      // Remove undefined values before saving to Firestore
+      const cleanJob = removeUndefined(jobPosting);
       await firestoreService.create<JobPosting & FirestoreDocument>(
         'jobs',
         userId,
         jobPosting.id,
-        jobPosting
+        cleanJob
       );
     } catch (error) {
       if (error instanceof Error && error.message.includes('quota')) {
