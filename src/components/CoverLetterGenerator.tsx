@@ -102,8 +102,9 @@ export function CoverLetterGenerator({ jobPosting }: { jobPosting: JobPosting })
   };
 
   const handleRegenerate = () => {
+    // Just clear the cover letter to show the form again
+    // User can then change tone and click Generate
     setCoverLetter(null);
-    handleGenerate();
   };
 
   if (!profile) {

@@ -67,6 +67,13 @@ export interface JobPosting {
   url?: string;
   inputMethod: InputMethod;
   createdAt: Date;
+  // Additional optional fields for better personalization
+  hiringManager?: string;
+  companyAddress?: string;
+  department?: string;
+  salary?: string;
+  benefits?: string[];
+  applicationDeadline?: string;
 }
 
 export interface CoverLetter {

@@ -130,8 +130,15 @@ Return a JSON object with these fields:
 - requirements: string[] (array of key requirements/qualifications)
 - language: string (detected language code: en, de, fr, es, etc.)
 - positionType: string (one of: full-time, part-time, internship, praktikum, co-op, apprenticeship)
+- hiringManager: string | null (name of hiring manager if mentioned, e.g., "John Smith" or "Dr. Jane Doe")
+- companyAddress: string | null (company address if mentioned)
+- department: string | null (department name if mentioned, e.g., "Engineering", "Marketing")
+- salary: string | null (salary range if mentioned, e.g., "$80,000 - $100,000")
+- benefits: string[] | null (list of benefits if mentioned)
+- applicationDeadline: string | null (application deadline if mentioned)
 
-Be accurate and extract real information from the content. If something is unclear, make your best guess based on context.`
+Extract as much information as possible. If a field is not found, set it to null or empty array.
+Be accurate and extract real information from the content.`
         },
         {
           role: 'user',
@@ -151,6 +158,12 @@ Be accurate and extract real information from the content. If something is uncle
       requirements: result.requirements || [],
       language: result.language || 'en',
       positionType: result.positionType || 'full-time',
+      hiringManager: result.hiringManager || undefined,
+      companyAddress: result.companyAddress || undefined,
+      department: result.department || undefined,
+      salary: result.salary || undefined,
+      benefits: result.benefits || undefined,
+      applicationDeadline: result.applicationDeadline || undefined,
       confidence: 0.85,
       source
     };

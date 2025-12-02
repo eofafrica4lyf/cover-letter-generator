@@ -558,6 +558,69 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
             />
           </div>
 
+          {/* Optional Additional Information */}
+          <details className="mb-4">
+            <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
+              Additional Information (Optional - helps personalize cover letter)
+            </summary>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pl-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Hiring Manager</label>
+                <input
+                  type="text"
+                  value={(jobData as any).hiringManager || ''}
+                  onChange={(e) => setJobData({ ...jobData, hiringManager: e.target.value })}
+                  placeholder="e.g., John Smith"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Department</label>
+                <input
+                  type="text"
+                  value={(jobData as any).department || ''}
+                  onChange={(e) => setJobData({ ...jobData, department: e.target.value })}
+                  placeholder="e.g., Engineering"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Company Address</label>
+                <input
+                  type="text"
+                  value={(jobData as any).companyAddress || ''}
+                  onChange={(e) => setJobData({ ...jobData, companyAddress: e.target.value })}
+                  placeholder="e.g., 123 Main St, City, State"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Salary Range</label>
+                <input
+                  type="text"
+                  value={(jobData as any).salary || ''}
+                  onChange={(e) => setJobData({ ...jobData, salary: e.target.value })}
+                  placeholder="e.g., $80,000 - $100,000"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Application Deadline</label>
+                <input
+                  type="text"
+                  value={(jobData as any).applicationDeadline || ''}
+                  onChange={(e) => setJobData({ ...jobData, applicationDeadline: e.target.value })}
+                  placeholder="e.g., December 31, 2024"
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+            </div>
+          </details>
+
           <button
             onClick={handleSave}
             className="w-full px-6 py-3 bg-green-500 text-white rounded-md hover:bg-green-600"
