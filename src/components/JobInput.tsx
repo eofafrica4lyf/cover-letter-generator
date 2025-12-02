@@ -30,15 +30,25 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
   useEffect(() => {
     const checkApiAvailability = async () => {
       try {
-        await fetch('/api/parse', {
+        const response = await fetch('/api/parse', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ source: 'test' })
         });
-        // If we get any response (even an error), the API exists
-        setIsProduction(true);
+        
+        console.log('API check response:', response.status);
+        
+        // If we get any HTTP response, the API is deployed
+        if (response.status >= 200 && response.status < 600) {
+          const data = await response.json();
+          console.log('API check data:', data);
+          setIsProduction(true);
+        } else {
+          setIsProduction(false);
+        }
       } catch (error) {
-        // API not available - likely in development mode
+        // Network error - API not available (development mode)
+        console.error('API check failed:', error);
         setIsProduction(false);
       }
     };

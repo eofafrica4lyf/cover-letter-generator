@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Diagnostic Tool</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .test {
+      margin: 20px 0;
+      padding: 15px;
+      border-left: 4px solid #ddd;
+      background: #f9f9f9;
+    }
+
+    .test.success {
+      border-left-color: #22c55e;
+      background: #f0fdf4;
+    }
+
+    .test.error {
+      border-left-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .test.pending {
+      border-left-color: #3b82f6;
+      background: #eff6ff;
+    }
+
+    .test-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .test-result {
+      font-family: monospace;
+      font-size: 14px;
+      color: #666;
+    }
+
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .summary {
+      margin-top: 30px;
+      padding: 20px;
+      background: #f9fafb;
+      border-radius: 6px;
+    }
+
+    .summary h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🔍 API Diagnostic Tool</h1>
+    <p class="subtitle">This tool checks if your Vercel API functions are working correctly.</p>
+
+    <button id="runTests" onclick="runAllTests()">Run Diagnostic Tests</button>
+
+    <div id="results"></div>
+
+    <div id="summary" class="summary" style="display: none;">
+      <h3>Summary</h3>
+      <div id="summaryContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const tests = [
+      {
+        name: 'Test 1: Check /api/parse endpoint exists',
+        test: async () => {
+          const response = await fetch('/api/parse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: 'test' })
+          });
+          return {
+            success: response.status === 200,
+            message: `Status: ${response.status}`,
+            data: await response.json()
+          };
+        }
+      },
+      {
+        name: 'Test 2: Check OpenAI API key is configured',
+        test: async () => {
+          const response = await fetch('/api/parse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: 'test' })
+          });
+          const data = await response.json();
+          return {
+            success: data.apiConfigured === true,
+            message: data.apiConfigured ? 'API key is configured' : 'API key is NOT configured',
+            data
+          };
+        }
+      },
+      {
+        name: 'Test 3: Check /api/generate endpoint',
+        test: async () => {
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+          });
+          return {
+            success: response.status === 400 || response.status === 503,
+            message: `Status: ${response.status} (400 or 503 expected for missing data)`,
+            data: await response.json()
+          };
+        }
+      },
+      {
+        name: 'Test 4: Check /api/translate endpoint',
+        test: async () => {
+          const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+          });
+          return {
+            success: response.status === 400 || response.status === 503,
+            message: `Status: ${response.status} (400 or 503 expected for missing data)`,
+            data: await response.json()
+          };
+        }
+      }
+    ];
+
+    async function runAllTests() {
+      const button = document.getElementById('runTests');
+      const resultsDiv = document.getElementById('results');
+      const summaryDiv = document.getElementById('summary');
+      const summaryContent = document.getElementById('summaryContent');
+
+      button.disabled = true;
+      button.textContent = 'Running tests...';
+      resultsDiv.innerHTML = '';
+      summaryDiv.style.display = 'none';
+
+      let passed = 0;
+      let failed = 0;
+
+      for (const testCase of tests) {
+        const testDiv = document.createElement('div');
+        testDiv.className = 'test pending';
+        testDiv.innerHTML = `
+                    <div class="test-name">${testCase.name}</div>
+                    <div class="test-result">Running...</div>
+                `;
+        resultsDiv.appendChild(testDiv);
+
+        try {
+          const result = await testCase.test();
+          testDiv.className = `test ${result.success ? 'success' : 'error'}`;
+          testDiv.innerHTML = `
+                        <div class="test-name">${result.success ? '✅' : '❌'} ${testCase.name}</div>
+                        <div class="test-result">${result.message}</div>
+                        <div class="test-result" style="margin-top: 8px;">Response: ${JSON.stringify(result.data, null, 2)}</div>
+                    `;
+          if (result.success) passed++;
+          else failed++;
+        } catch (error) {
+          testDiv.className = 'test error';
+          testDiv.innerHTML = `
+                        <div class="test-name">❌ ${testCase.name}</div>
+                        <div class="test-result">Error: ${error.message}</div>
+                    `;
+          failed++;
+        }
+      }
+
+      button.disabled = false;
+      button.textContent = 'Run Tests Again';
+
+      summaryDiv.style.display = 'block';
+      summaryContent.innerHTML = `
+                <p><strong>Tests Passed:</strong> ${passed}/${tests.length}</p>
+                <p><strong>Tests Failed:</strong> ${failed}/${tests.length}</p>
+                ${failed === 0 ?
+          '<p style="color: #22c55e;">✅ All tests passed! Your API is working correctly.</p>' :
+          '<p style="color: #ef4444;">❌ Some tests failed. Check the results above and see TROUBLESHOOTING_API.md for solutions.</p>'
+        }
+            `;
+    }
+  </script>
+</body>
+
+</html>
