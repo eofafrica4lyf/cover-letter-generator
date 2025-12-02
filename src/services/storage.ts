@@ -4,8 +4,6 @@ import { ErrorCodes } from '../types';
 
 // Profile Storage Service
 export class ProfileStorage {
-  private static readonly PROFILE_KEY = 'current-profile';
-
   static async create(profile: UserProfile): Promise<void> {
     try {
       await db.profiles.put(profile);

@@ -10,6 +10,8 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
   const [activeTab, setActiveTab] = useState<TabType>('manual');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isProduction, setIsProduction] = useState<boolean | null>(null);
+  const [translating, setTranslating] = useState(false);
 
   const [jobData, setJobData] = useState<Partial<JobPosting>>({
     jobTitle: '',
@@ -23,6 +25,25 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
   const [urlInput, setUrlInput] = useState('');
   const [textInput, setTextInput] = useState('');
   const [detectedLanguage, setDetectedLanguage] = useState<string>('');
+
+  // Check if API is available (production mode)
+  useEffect(() => {
+    const checkApiAvailability = async () => {
+      try {
+        await fetch('/api/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ source: 'test' })
+        });
+        // If we get any response (even an error), the API exists
+        setIsProduction(true);
+      } catch (error) {
+        // API not available - likely in development mode
+        setIsProduction(false);
+      }
+    };
+    checkApiAvailability();
+  }, []);
 
   // Auto-detect language when description changes
   useEffect(() => {
@@ -56,6 +77,7 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
       if (!response.ok) throw new Error('API not available');
 
       const data = await response.json();
+      
       setJobData({
         ...jobData,
         jobTitle: data.jobTitle || '',
@@ -66,6 +88,7 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
         url: urlInput,
         inputMethod: 'url'
       });
+      
       setActiveTab('manual');
     } catch (error) {
       // Fallback: Show message and switch to manual entry
@@ -224,6 +247,66 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
     }
   };
 
+  const handleLanguageChange = async (newLanguage: string) => {
+    // If description exists and language is changing, offer to translate
+    if (jobData.description && jobData.description.length > 0 && newLanguage !== jobData.language) {
+      const shouldTranslate = window.confirm(
+        `Would you like to translate the job description to ${getLanguageName(newLanguage)}?`
+      );
+      
+      if (shouldTranslate) {
+        setTranslating(true);
+        try {
+          const response = await fetch('/api/translate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: jobData.description,
+              sourceLanguage: jobData.language,
+              targetLanguage: newLanguage
+            })
+          });
+
+          if (!response.ok) throw new Error('Translation failed');
+
+          const data = await response.json();
+          setJobData({
+            ...jobData,
+            description: data.translatedText,
+            language: newLanguage
+          });
+        } catch (error) {
+          console.error('Translation error:', error);
+          alert('Translation failed. Please try again or edit manually.');
+          // Still update the language even if translation fails
+          setJobData({ ...jobData, language: newLanguage });
+        } finally {
+          setTranslating(false);
+        }
+      } else {
+        // Just update the language without translating
+        setJobData({ ...jobData, language: newLanguage });
+      }
+    } else {
+      // No description to translate, just update language
+      setJobData({ ...jobData, language: newLanguage });
+    }
+  };
+
+  const getLanguageName = (code: string): string => {
+    const names: Record<string, string> = {
+      en: 'English',
+      de: 'German',
+      fr: 'French',
+      es: 'Spanish',
+      it: 'Italian',
+      pt: 'Portuguese',
+      nl: 'Dutch',
+      pl: 'Polish',
+    };
+    return names[code] || code;
+  };
+
   const addRequirement = (req: string) => {
     if (req.trim() && !jobData.requirements?.includes(req.trim())) {
       setJobData({
@@ -275,11 +358,20 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
       {/* URL Tab */}
       {activeTab === 'url' && (
         <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-            <p className="text-sm text-blue-800">
-              💡 <strong>Development Mode:</strong> URL scraping requires deployment. For now, use the "Paste Text" or "Manual Entry" tabs.
-            </p>
-          </div>
+          {isProduction === false && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-blue-800">
+                💡 <strong>Development Mode:</strong> URL scraping requires deployment. For now, use the "Paste Text" or "Manual Entry" tabs.
+              </p>
+            </div>
+          )}
+          {isProduction === true && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-green-800">
+                ✅ <strong>Production Mode:</strong> URL scraping is available! Enter a job posting URL below.
+              </p>
+            </div>
+          )}
           <label className="block text-sm font-medium mb-2">Job Posting URL</label>
           <div className="flex gap-2">
             <input
@@ -391,11 +483,17 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
                     Detected: {detectedLanguage}
                   </span>
                 )}
+                {translating && (
+                  <span className="ml-2 text-xs text-blue-600">
+                    Translating...
+                  </span>
+                )}
               </label>
               <select
                 value={jobData.language}
-                onChange={(e) => setJobData({ ...jobData, language: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md"
+                onChange={(e) => handleLanguageChange(e.target.value)}
+                disabled={translating}
+                className="w-full px-3 py-2 border rounded-md disabled:bg-gray-100"
               >
                 <option value="en">English</option>
                 <option value="de">German (Deutsch)</option>

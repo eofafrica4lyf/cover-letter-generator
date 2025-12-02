@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { ProfileManager } from './components/ProfileManager';
 import { JobInput } from './components/JobInput';
 import { JobList } from './components/JobList';

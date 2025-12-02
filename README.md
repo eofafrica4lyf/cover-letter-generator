@@ -5,11 +5,14 @@ A web-based application that uses AI to create personalized cover letters for jo
 ## ✨ Features
 
 ### 🎯 Core Features (All Working!)
+- ✅ **AI-Powered URL Scraping**: Automatically extract job details from any URL
+- ✅ **Intelligent Text Parsing**: AI extracts structured data from pasted job postings
+- ✅ **File Upload Support**: Parse PDF and DOCX job postings
+- ✅ **AI Cover Letter Generation**: GPT-4o creates personalized, high-quality letters
 - ✅ **Profile Management**: Complete profile with work experience, education, skills, and academic context
 - ✅ **Job Management**: Save, view, select, and delete job postings
-- ✅ **Multi-language Support**: Auto-detect and generate in 12+ languages
+- ✅ **Multi-language Support**: Auto-detect and generate in 8+ languages
 - ✅ **Smart Gap Analysis**: Identifies missing information before generation
-- ✅ **Template Generation**: High-quality cover letters tailored to position type
 - ✅ **Full Editor**: Edit with version control (original + edited versions)
 - ✅ **Export**: PDF, DOCX, and TXT with smart filenames
 - ✅ **Library**: Search, filter, and organize all your cover letters
@@ -36,10 +39,15 @@ npm install
 ```
 
 2. Set up environment variables:
-Create a `.env` file in the root directory:
+Create a `.env.local` file in the root directory:
 ```
-VITE_OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
+
+**Get your OpenAI API key:**
+- Visit https://platform.openai.com/api-keys
+- Create a new secret key
+- See `API_SETUP.md` for detailed instructions
 
 3. Start the development server:
 ```bash
@@ -121,7 +129,8 @@ Once you've added a job posting:
 - **Storage**: IndexedDB (via Dexie.js)
 - **Routing**: React Router
 - **Backend**: Vercel Serverless Functions
-- **AI**: OpenAI GPT-3.5-turbo
+- **AI**: OpenAI GPT-4o (generation) + GPT-4o-mini (parsing)
+- **Scraping**: Cheerio for HTML parsing
 - **Export**: jsPDF, docx library
 
 ## Cost Optimization
@@ -129,8 +138,12 @@ Once you've added a job posting:
 The application is designed for minimal costs:
 - **Hosting**: Free (Vercel free tier)
 - **Storage**: Local (IndexedDB - no database costs)
-- **AI**: ~$0.003 per cover letter generation
-- **Estimated**: $25-40/month for 1000 active users
+- **AI Parsing**: ~$0.001 per job posting (GPT-4o-mini)
+- **AI Generation**: ~$0.02-0.05 per cover letter (GPT-4o)
+- **Personal Use**: ~$2-5/month for moderate usage
+- **Free Tier**: OpenAI offers $5 in free credits (100-250 letters)
+
+See `API_SETUP.md` for detailed pricing information.
 
 ## Development
 
@@ -155,7 +168,9 @@ vercel
 
 ## Environment Variables
 
-- `VITE_OPENAI_API_KEY`: Your OpenAI API key for AI generation
+- `OPENAI_API_KEY`: Your OpenAI API key for AI features (parsing & generation)
+
+**Important:** This is a server-side variable. For Vercel deployment, add it in your project settings under Environment Variables. See `API_SETUP.md` for detailed setup instructions.
 
 ## Browser Support
 

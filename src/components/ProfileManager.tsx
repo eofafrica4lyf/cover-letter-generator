@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { UserProfile, WorkExperience, Education, AcademicContext } from '../types';
+import type { UserProfile, WorkExperience, Education } from '../types';
 import { ProfileStorage } from '../services/storage';
 import { validateProfile } from '../utils/validation';
 
