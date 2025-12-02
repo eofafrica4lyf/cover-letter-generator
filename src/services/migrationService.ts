@@ -1,5 +1,5 @@
 import { db as dexieDb } from '../db/database';
-import { firestoreService, type BatchOperation } from './firestoreService';
+import { firestoreService } from './firestoreService';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { db as firestoreDb } from '../lib/firebase';
 import type { UserProfile, CoverLetter, JobPosting } from '../types';
