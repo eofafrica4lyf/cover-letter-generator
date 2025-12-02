@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { ProfileManager } from './components/ProfileManager';
 import { JobInput } from './components/JobInput';
 import { JobList } from './components/JobList';
@@ -62,23 +62,13 @@ function App() {
             <Route
               path="/jobs"
               element={
-                <JobList
-                  onSelectJob={(job) => {
-                    setSelectedJob(job);
-                    window.location.href = '/generate';
-                  }}
-                />
+                <JobListWrapper setSelectedJob={setSelectedJob} />
               }
             />
             <Route
               path="/job/new"
               element={
-                <JobInput
-                  onJobCreated={(job) => {
-                    setSelectedJob(job);
-                    window.location.href = '/generate';
-                  }}
-                />
+                <JobInputWrapper setSelectedJob={setSelectedJob} />
               }
             />
             <Route
@@ -181,6 +171,32 @@ function GenerateWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting)
         </Link>
       </div>
     </div>
+  );
+}
+
+function JobListWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting) => void }) {
+  const navigate = useNavigate();
+  
+  return (
+    <JobList
+      onSelectJob={(job) => {
+        setSelectedJob(job);
+        navigate('/generate');
+      }}
+    />
+  );
+}
+
+function JobInputWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting) => void }) {
+  const navigate = useNavigate();
+  
+  return (
+    <JobInput
+      onJobCreated={(job) => {
+        setSelectedJob(job);
+        navigate('/generate');
+      }}
+    />
   );
 }
 
