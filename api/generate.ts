@@ -77,12 +77,22 @@ async function generateCoverLetter(params: any): Promise<string> {
 - Emphasize achievements and specific examples
 - Show genuine interest in the company and role
 - ${isEducational ? 'Focus on academic achievements, coursework, and eagerness to learn' : 'Focus on professional experience and proven results'}
+Speak in an active voice, not passive voice.
+
+For the introduction, write an attention-grabbing hook.
+
+For the body, please identify the 4 most important skills that the job description is asking for and write a short paragraph that illustrates how I have those skills, touching on real world examples from mty resume.
+The paragraphs should only be 2-3 sentences long. They should have a ${tone} tone. They should be written in first person and in a narrative tone.
+Here is a sample paragraph that I would like you to mirror:
+
+"Digital Marketing
+I have 4 years of experience in digital marketing, owning social media, email, and web content strategies. At ABC Company, I successfully generated a 32% increase in web traffic through my dynamic social media strategy and at XYZ Company, I exceeded the industry standard email open rate at 51%."
 
 Format the letter with:
 1. Contact information header
 2. Date
 3. Company name
-4. Greeting
+4. Greeting/Introduction
 5. Body paragraphs (3-4 paragraphs)
 6. Closing
 7. Signature
