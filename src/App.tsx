@@ -271,14 +271,17 @@ function GenerateWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting)
 
 function JobListWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting) => void }) {
   const navigate = useNavigate();
-  
+
   return (
-    <JobList
-      onSelectJob={(job) => {
-        setSelectedJob(job);
-        navigate('/generate');
-      }}
-    />
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">My Jobs</h1>
+      <JobList
+        onSelectJob={(job) => {
+          setSelectedJob(job);
+          navigate('/generate');
+        }}
+      />
+    </div>
   );
 }
 

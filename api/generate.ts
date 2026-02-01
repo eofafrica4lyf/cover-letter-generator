@@ -2,34 +2,40 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
 import { runPipeline } from './generatePipeline';
 
+/** Vercel Hobby caps at 10s; Pro allows up to 300s. Use 10 so deploy works on Hobby. */
+export const config = {
+  maxDuration: 10,
+};
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { jobPosting, userProfile, language, tone, additionalNotes, additionalInfo, sampleLetter } = req.body;
-
-  if (!jobPosting || !userProfile) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
-  // Check if OpenAI API key is configured
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(503).json({
-      error: 'OpenAI API key not configured',
-      message: 'Please add OPENAI_API_KEY to your environment variables'
-    });
-  }
-
-  const lang = language || jobPosting.language || 'en';
-  const toneVal = tone || 'professional';
-
   try {
-    const result = await runPipeline({
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { jobPosting, userProfile, language, tone, additionalNotes, additionalInfo, sampleLetter } = req.body || {};
+
+    if (!jobPosting || !userProfile) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Check if OpenAI API key is configured
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({
+        error: 'OpenAI API key not configured',
+        message: 'Please add OPENAI_API_KEY to your environment variables'
+      });
+    }
+
+    const lang = language || jobPosting.language || 'en';
+    const toneVal = tone || 'professional';
+
+    try {
+      const result = await runPipeline({
       jobPosting,
       userProfile,
       language: lang,
@@ -67,6 +73,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         error: 'Failed to generate cover letter',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  }
+  } catch (err) {
+    console.error('Generate API error:', err);
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    try {
+      return res.status(500).json({
+        error: 'A server error occurred',
+        details: message,
+        code: 'FUNCTION_ERROR'
+      });
+    } catch (_) {
+      // Response already sent; do not throw
     }
   }
 }

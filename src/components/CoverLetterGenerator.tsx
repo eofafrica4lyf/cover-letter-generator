@@ -366,8 +366,16 @@ export function CoverLetterGenerator({ jobPosting }: { jobPosting: JobPosting })
             {editableJob.description && (
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
-                <div className="text-sm text-gray-600 whitespace-pre-wrap max-h-[400px] overflow-y-auto pr-2">
-                  {editableJob.description}
+                <div className="text-sm text-gray-600 leading-relaxed max-h-[400px] overflow-y-auto pr-2 space-y-3">
+                  {editableJob.description
+                    .trim()
+                    .split(/\n\n+/)
+                    .filter(p => p.trim())
+                    .map((paragraph, i) => (
+                      <p key={i} className="whitespace-pre-wrap">
+                        {paragraph.trim()}
+                      </p>
+                    ))}
                 </div>
               </div>
             )}

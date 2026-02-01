@@ -251,29 +251,63 @@ async function stage4Validate(
   return ValidationOutputSchema.parse(json);
 }
 
+/** Normalize request data for serverless (defensive against missing/undefined). */
+function normalizeInput(input: PipelineInput): PipelineInput {
+  const job = input.jobPosting || {};
+  const profile = input.userProfile || {};
+  return {
+    ...input,
+    jobPosting: {
+      jobTitle: job.jobTitle ?? '',
+      companyName: job.companyName ?? '',
+      positionType: job.positionType ?? 'full-time',
+      description: job.description ?? '',
+      requirements: Array.isArray(job.requirements) ? job.requirements : [],
+      language: job.language ?? 'en',
+      hiringManager: job.hiringManager,
+      companyAddress: job.companyAddress,
+      department: job.department,
+    },
+    userProfile: {
+      name: profile.name ?? '',
+      email: profile.email ?? '',
+      phone: profile.phone,
+      location: profile.location,
+      skills: profile.skills,
+      workExperience: profile.workExperience,
+      education: profile.education,
+      projects: profile.projects,
+      academicContext: profile.academicContext,
+    },
+    language: input.language ?? job.language ?? 'en',
+    tone: input.tone ?? 'professional',
+  };
+}
+
 /** Run the full pipeline and return content + language. */
 export async function runPipeline(input: PipelineInput): Promise<PipelineOutput> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('OPENAI_API_KEY is not set');
 
+  const normalized = normalizeInput(input);
   const openai = new OpenAI({ apiKey });
 
-  const requirements = await stage1ExtractRequirements(openai, input.jobPosting);
-  const evidenceMap = await stage2MapEvidence(openai, requirements, input.userProfile);
+  const requirements = await stage1ExtractRequirements(openai, normalized.jobPosting);
+  const evidenceMap = await stage2MapEvidence(openai, requirements, normalized.userProfile);
   const content = await stage3GenerateLetter(
     openai,
-    input.jobPosting,
-    input.userProfile,
+    normalized.jobPosting,
+    normalized.userProfile,
     evidenceMap,
-    input.language,
-    input.tone,
-    input.sampleLetter
+    normalized.language,
+    normalized.tone,
+    normalized.sampleLetter
   );
   const validation = await stage4Validate(openai, content, evidenceMap);
 
   return {
     content,
-    language: input.language,
+    language: normalized.language,
     evidenceMap,
     validation,
   };
