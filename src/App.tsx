@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SyncProvider } from './contexts/SyncContext';
 import { AuthGuard } from './components/Auth/AuthGuard';
@@ -13,11 +13,11 @@ import { CoverLetterEditor } from './components/CoverLetterEditor';
 import { CoverLetterLibrary } from './components/CoverLetterLibrary';
 import { MigrationHandler } from './components/MigrationHandler';
 import { SyncStatus } from './components/SyncStatus';
-import { useState } from 'react';
+import { JobPostingStorage } from './services/storage';
+import { useState, useEffect } from 'react';
 import type { JobPosting } from './types';
 
 function AppContent() {
-  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const { currentUser, logout } = useAuth();
 
   return (
@@ -113,7 +113,7 @@ function AppContent() {
             path="/jobs"
             element={
               <AuthGuard>
-                <JobListWrapper setSelectedJob={setSelectedJob} />
+                <JobListWrapper />
               </AuthGuard>
             }
           />
@@ -121,7 +121,7 @@ function AppContent() {
             path="/job/new"
             element={
               <AuthGuard>
-                <JobInputWrapper setSelectedJob={setSelectedJob} />
+                <JobInputWrapper />
               </AuthGuard>
             }
           />
@@ -129,11 +129,15 @@ function AppContent() {
             path="/generate"
             element={
               <AuthGuard>
-                {selectedJob ? (
-                  <CoverLetterGenerator jobPosting={selectedJob} />
-                ) : (
-                  <GenerateWrapper setSelectedJob={setSelectedJob} />
-                )}
+                <GenerateWrapper />
+              </AuthGuard>
+            }
+          />
+          <Route
+            path="/generate/:jobId"
+            element={
+              <AuthGuard>
+                <GenerateByJobId />
               </AuthGuard>
             }
           />
@@ -252,11 +256,12 @@ function EditorWrapper() {
   return <CoverLetterEditor letterId={id} />;
 }
 
-function GenerateWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting) => void }) {
+function GenerateWrapper() {
+  const navigate = useNavigate();
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Select a Job</h1>
-      <JobList onSelectJob={setSelectedJob} />
+      <JobList onSelectJob={(job) => navigate(`/generate/${job.id}`)} />
       <div className="mt-6 text-center">
         <Link
           to="/job/new"
@@ -269,31 +274,71 @@ function GenerateWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting)
   );
 }
 
-function JobListWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting) => void }) {
+function GenerateByJobId() {
+  const { jobId } = useParams<{ jobId: string }>();
+  const navigate = useNavigate();
+  const [job, setJob] = useState<JobPosting | null | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!jobId) {
+      setLoading(false);
+      setJob(null);
+      return;
+    }
+    let cancelled = false;
+    JobPostingStorage.read(jobId)
+      .then((j) => {
+        if (!cancelled) {
+          setJob(j ?? null);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setJob(null);
+          setLoading(false);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [jobId]);
+
+  useEffect(() => {
+    if (!loading && jobId && job === null) {
+      navigate('/jobs', { replace: true });
+    }
+  }, [loading, jobId, job, navigate]);
+
+  if (loading || job === undefined || job === null) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        {loading ? <div className="p-4">Loading job...</div> : null}
+      </div>
+    );
+  }
+
+  return <CoverLetterGenerator jobPosting={job} />;
+}
+
+function JobListWrapper() {
   const navigate = useNavigate();
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">My Jobs</h1>
       <JobList
-        onSelectJob={(job) => {
-          setSelectedJob(job);
-          navigate('/generate');
-        }}
+        onSelectJob={(job) => navigate(`/generate/${job.id}`)}
       />
     </div>
   );
 }
 
-function JobInputWrapper({ setSelectedJob }: { setSelectedJob: (job: JobPosting) => void }) {
+function JobInputWrapper() {
   const navigate = useNavigate();
-  
+
   return (
     <JobInput
-      onJobCreated={(job) => {
-        setSelectedJob(job);
-        navigate('/generate');
-      }}
+      onJobCreated={(job) => navigate(`/generate/${job.id}`)}
     />
   );
 }

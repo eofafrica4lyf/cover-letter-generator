@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import OpenAI from 'openai';
-import { runPipeline } from './generatePipeline';
+import { runPipeline } from './generatePipeline.js';
 
 /** Vercel Hobby caps at 10s; Pro allows up to 300s. Use 10 so deploy works on Hobby. */
 export const config = {
@@ -189,8 +189,8 @@ INCORRECT Example #2:
 THE FIX: Only mention skills in the topic sentence that you can PROVE with specific examples in that paragraph. If the candidate doesn't have C/embedded experience in their profile, DO NOT claim it - instead, focus on the skills they actually have (like React.js, Node.js, etc.) and explain how those transferable skills apply to the role.`}
 
 Format the letter with:
-1. Contact information header(including the recruiter's name)
-2. Company name with the address under it.
+1. Contact information header (your name, email, phone, address)
+2. Company name with the address under it; if a hiring manager is provided, include them in the company address block (e.g. "Attn: [Name]" in English, or "z.Hd. Herrn/Frau [Name]" in German).
 3. Title
 4. Greeting/Introduction (should preview the main qualifications discussed in body)
 5. Body paragraphs (EXACTLY 2 paragraphs with smooth transitions)
@@ -406,7 +406,7 @@ ${jobPosting.benefits.map((benefit: string, idx: number) => `${idx + 1}. ${benef
 function getLanguageInstructions(language: string): string {
   const instructions: Record<string, string> = {
     en: 'Write in English',
-    de: 'Write in German (Deutsch). Use formal business German.',
+    de: 'Write in German (Deutsch). Use formal business German. Do not repeat your name, address, or phone at the bottom—only your name under the signature.',
     fr: 'Write in French (Français). Use formal business French.',
     es: 'Write in Spanish (Español). Use formal business Spanish.',
     it: 'Write in Italian (Italiano). Use formal business Italian.',
