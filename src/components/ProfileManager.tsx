@@ -109,6 +109,7 @@ export function ProfileManager() {
           company: '',
           startDate: '',
           endDate: null,
+          isOngoing: false,
           description: '',
           achievements: [],
         }
@@ -142,6 +143,7 @@ export function ProfileManager() {
           degree: '',
           institution: '',
           graduationDate: '',
+          isOngoing: false,
         }
       ]
     }));
@@ -172,6 +174,7 @@ export function ProfileManager() {
           id: crypto.randomUUID(),
           title: '',
           completionDate: '',
+          isOngoing: false,
           description: '',
         }
       ]
@@ -309,8 +312,23 @@ export function ProfileManager() {
                 placeholder="End Date"
                 value={exp.endDate || ''}
                 onChange={(e) => updateWorkExperience(index, 'endDate', e.target.value || null)}
-                className="px-3 py-2 border rounded-md"
+                disabled={exp.isOngoing}
+                className="px-3 py-2 border rounded-md disabled:bg-gray-100"
               />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={exp.isOngoing}
+                  onChange={(e) => {
+                    updateWorkExperience(index, 'isOngoing', e.target.checked);
+                    if (e.target.checked) {
+                      updateWorkExperience(index, 'endDate', null);
+                    }
+                  }}
+                  className="rounded"
+                />
+                <span className="text-sm">Ongoing</span>
+              </label>
             </div>
             <textarea
               placeholder="Description"
@@ -363,8 +381,20 @@ export function ProfileManager() {
                 placeholder="Graduation Date"
                 value={edu.graduationDate}
                 onChange={(e) => updateEducation(index, 'graduationDate', e.target.value)}
-                className="px-3 py-2 border rounded-md"
+                disabled={edu.isOngoing}
+                className="px-3 py-2 border rounded-md disabled:bg-gray-100"
               />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={edu.isOngoing}
+                  onChange={(e) => {
+                    updateEducation(index, 'isOngoing', e.target.checked);
+                  }}
+                  className="rounded"
+                />
+                <span className="text-sm">In Progress</span>
+              </label>
               <input
                 type="text"
                 placeholder="GPA (optional)"
@@ -410,8 +440,20 @@ export function ProfileManager() {
                 placeholder="Completion Date"
                 value={project.completionDate}
                 onChange={(e) => updateProject(index, 'completionDate', e.target.value)}
-                className="px-3 py-2 border rounded-md"
+                disabled={project.isOngoing}
+                className="px-3 py-2 border rounded-md disabled:bg-gray-100"
               />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={project.isOngoing}
+                  onChange={(e) => {
+                    updateProject(index, 'isOngoing', e.target.checked);
+                  }}
+                  className="rounded"
+                />
+                <span className="text-sm">Ongoing</span>
+              </label>
             </div>
             <textarea
               placeholder="Project Description"

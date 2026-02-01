@@ -6,6 +6,14 @@ import { detectLanguage } from '../utils/language';
 
 type TabType = 'url' | 'manual' | 'paste' | 'file';
 
+/** Normalize requirements to short skill labels only (max 2 words each). */
+function normalizeRequirements(requirements: string[]): string[] {
+  return requirements.map(r => {
+    const words = r.trim().split(/\s+/).filter(Boolean);
+    return words.length > 2 ? words.slice(0, 2).join(' ') : r.trim();
+  }).filter(Boolean);
+}
+
 export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) => void }) {
   const [activeTab, setActiveTab] = useState<TabType>('manual');
   const [loading, setLoading] = useState(false);
@@ -93,10 +101,17 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
         jobTitle: data.jobTitle || '',
         companyName: data.companyName || '',
         description: data.description || '',
-        requirements: data.requirements || [],
+        requirements: normalizeRequirements(data.requirements || []),
         language: data.language || 'en',
         url: urlInput,
-        inputMethod: 'url'
+        inputMethod: 'url',
+        // Include additional fields from parse API
+        hiringManager: data.hiringManager || '',
+        department: data.department || '',
+        companyAddress: data.companyAddress || '',
+        salary: data.salary || '',
+        applicationDeadline: data.applicationDeadline || '',
+        benefits: data.benefits || []
       });
       
       setActiveTab('manual');
@@ -143,9 +158,16 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
         jobTitle: data.jobTitle || '',
         companyName: data.companyName || '',
         description: data.description || textInput,
-        requirements: data.requirements || [],
+        requirements: normalizeRequirements(data.requirements || []),
         language: data.language || 'en',
-        inputMethod: 'paste'
+        inputMethod: 'paste',
+        // Include additional fields from parse API
+        hiringManager: data.hiringManager || '',
+        department: data.department || '',
+        companyAddress: data.companyAddress || '',
+        salary: data.salary || '',
+        applicationDeadline: data.applicationDeadline || '',
+        benefits: data.benefits || []
       });
       setActiveTab('manual');
     } catch (error) {
@@ -188,9 +210,16 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
           jobTitle: data.jobTitle || '',
           companyName: data.companyName || '',
           description: data.description || '',
-          requirements: data.requirements || [],
+          requirements: normalizeRequirements(data.requirements || []),
           language: data.language || 'en',
-          inputMethod: 'file-upload'
+          inputMethod: 'file-upload',
+          // Include additional fields from parse API
+          hiringManager: data.hiringManager || '',
+          department: data.department || '',
+          companyAddress: data.companyAddress || '',
+          salary: data.salary || '',
+          applicationDeadline: data.applicationDeadline || '',
+          benefits: data.benefits || []
         });
         setActiveTab('manual');
         setLoading(false);
@@ -232,6 +261,13 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
         url: jobData.url,
         inputMethod: (jobData.inputMethod || 'manual') as InputMethod,
         createdAt: new Date(),
+        // Include additional fields
+        hiringManager: (jobData as any).hiringManager,
+        department: (jobData as any).department,
+        companyAddress: (jobData as any).companyAddress,
+        salary: (jobData as any).salary,
+        applicationDeadline: (jobData as any).applicationDeadline,
+        benefits: (jobData as any).benefits
       };
 
       await JobPostingStorage.create(fullJob);
@@ -528,7 +564,8 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Requirements</label>
+            <label className="block text-sm font-medium mb-2">Requirements (short skill labels only)</label>
+            <p className="text-xs text-gray-500 mb-2">One or two words per skill, e.g. C++, Python, teamwork.</p>
             <div className="flex flex-wrap gap-2 mb-2">
               {jobData.requirements?.map(req => (
                 <span
@@ -547,7 +584,7 @@ export function JobInput({ onJobCreated }: { onJobCreated?: (job: JobPosting) =>
             </div>
             <input
               type="text"
-              placeholder="Add a requirement and press Enter"
+              placeholder="e.g. C++, Python, teamwork"
               onKeyPress={(e) => {
                 if (e.key === 'Enter') {
                   addRequirement(e.currentTarget.value);

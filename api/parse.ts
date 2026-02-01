@@ -122,16 +122,16 @@ async function parseWithAI(content: string, source: string) {
       messages: [
         {
           role: 'system',
-          content: `You are a job posting parser. Extract structured information from job postings.
+          content: `You are an accurate job posting parser. Extract structured information from job postings.
 Return a JSON object with these fields:
 - jobTitle: string (the job title)
 - companyName: string (the company name)
-- description: string (full job description, 200-500 words)
-- requirements: string[] (array of key requirements/qualifications)
+- description: string (full job description). Add everything about the job post. Don't change anything.
+- requirements: string[] (array of key requirements/qualifications). Each item must be a short skill label only: one or two words (e.g. "C++", "Python", "React", "team leadership", "German"). No full sentences or long phrases. Extract technical skills, languages, soft skills as nouns or short labels.
 - language: string (detected language code: en, de, fr, es, etc.)
 - positionType: string (one of: full-time, part-time, internship, praktikum, co-op, apprenticeship)
-- hiringManager: string | null (name of hiring manager if mentioned, e.g., "John Smith" or "Dr. Jane Doe")
-- companyAddress: string | null (company address if mentioned)
+- hiringManager: string | null (name of hiring manager if mentioned, e.g., "John Smith" or "Dr. Jane Doe"). Looks for anyone tagged as 'Contact'/'Recruiter'
+- companyAddress: string | null (company address if mentioned). Search online for the address of the company. If there is particular location, include the location in the search.
 - department: string | null (department name if mentioned, e.g., "Engineering", "Marketing")
 - salary: string | null (salary range if mentioned, e.g., "$80,000 - $100,000")
 - benefits: string[] | null (list of benefits if mentioned)
@@ -142,7 +142,7 @@ Be accurate and extract real information from the content.`
         },
         {
           role: 'user',
-          content: `Parse this job posting:\n\n${content.substring(0, 6000)}`
+          content: `Parse this job posting:\n\n${content}`
         }
       ],
       response_format: { type: 'json_object' },
@@ -150,11 +150,11 @@ Be accurate and extract real information from the content.`
     });
 
     const result = JSON.parse(completion.choices[0].message.content || '{}');
-    
+
     return {
       jobTitle: result.jobTitle || 'Unknown Position',
       companyName: result.companyName || 'Unknown Company',
-      description: result.description || content.substring(0, 500),
+      description: result.description || content,
       requirements: result.requirements || [],
       language: result.language || 'en',
       positionType: result.positionType || 'full-time',

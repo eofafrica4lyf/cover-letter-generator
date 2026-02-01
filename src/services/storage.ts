@@ -261,6 +261,12 @@ export class JobPostingStorage {
     }
   }
 
+  static async update(id: string, updates: Partial<JobPosting>): Promise<void> {
+    const userId = getCurrentUserId();
+    const cleaned = removeUndefined(updates);
+    await firestoreService.update('jobs', userId, id, cleaned);
+  }
+
   static async list(): Promise<JobPosting[]> {
     try {
       const userId = getCurrentUserId();

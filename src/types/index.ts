@@ -20,6 +20,7 @@ export interface WorkExperience {
   company: string;
   startDate: string;
   endDate: string | null;
+  isOngoing: boolean;
   description: string;
   achievements: string[];
 }
@@ -29,6 +30,7 @@ export interface Education {
   degree: string;
   institution: string;
   graduationDate: string;
+  isOngoing: boolean;
   gpa?: string;
   relevantCoursework?: string[];
 }
@@ -46,6 +48,7 @@ export interface Project {
   id: string;
   title: string;
   completionDate: string; // Format: "YYYY-MM" (e.g., "2024-06")
+  isOngoing: boolean;
   description: string;
 }
 
@@ -96,6 +99,11 @@ export interface CoverLetter {
     positionType: PositionType;
     generatedAt: Date;
     editedAt?: Date;
+    previousVersions?: {
+      id: string;
+      content: string;
+      generatedAt: Date;
+    }[];
   };
 }
 
@@ -106,6 +114,7 @@ export interface GenerationRequest {
   tone?: 'professional' | 'enthusiastic' | 'formal';
   additionalNotes?: string;
   additionalInfo?: Record<string, string>;
+  sampleLetter?: string;
 }
 
 export interface InformationGap {

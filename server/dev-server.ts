@@ -53,6 +53,14 @@ const wrapVercelHandler = (handler: any) => {
   };
 };
 
+// Fallback when API handlers fail to load (e.g. missing deps)
+function apiUnavailable(_req: express.Request, res: express.Response) {
+  res.status(503).json({
+    error: 'API temporarily unavailable',
+    message: 'Restart the dev server after running: npm install',
+  });
+}
+
 // Register API routes dynamically
 async function setupRoutes() {
   try {
@@ -74,7 +82,14 @@ async function setupRoutes() {
     });
   } catch (error) {
     console.error('Failed to load API handlers:', error);
-    process.exit(1);
+    // Still start the server so Vite can run and the app loads; /api/* returns 503
+    app.post('/api/generate', apiUnavailable);
+    app.post('/api/parse', apiUnavailable);
+    app.post('/api/translate', apiUnavailable);
+    app.listen(PORT, () => {
+      console.log(`\n⚠️  Dev API server running on http://localhost:${PORT} (handlers failed to load)`);
+      console.log(`   Fix the error above and restart. Frontend: http://localhost:5173\n`);
+    });
   }
 }
 
