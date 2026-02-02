@@ -34,24 +34,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const lang = language || jobPosting.language || 'en';
     const toneVal = tone || 'professional';
 
-    try {
-      const result = await runPipeline({
-      jobPosting,
-      userProfile,
-      language: lang,
-      tone: toneVal,
-      additionalNotes,
-      additionalInfo,
-      sampleLetter
-    });
+    // Use pipeline only when explicitly enabled (e.g. Vercel Pro with longer timeout).
+    // Default: single-call legacy generator so we stay within 10s on Hobby.
+    const usePipeline = process.env.USE_PIPELINE === 'true' || process.env.USE_PIPELINE === '1';
 
-    return res.status(200).json({
-      content: result.content,
-      language: result.language,
-      tokensUsed: result.content.split(' ').length
-    });
-  } catch (pipelineError) {
-    console.warn('Pipeline failed, falling back to legacy generator:', pipelineError);
+    if (usePipeline) {
+      try {
+        const result = await runPipeline({
+          jobPosting,
+          userProfile,
+          language: lang,
+          tone: toneVal,
+          additionalNotes,
+          additionalInfo,
+          sampleLetter
+        });
+        return res.status(200).json({
+          content: result.content,
+          language: result.language,
+          tokensUsed: result.content.split(' ').length
+        });
+      } catch (pipelineError) {
+        console.warn('Pipeline failed, falling back to legacy generator:', pipelineError);
+      }
+    }
+
     try {
       const content = await generateCoverLetter({
         jobPosting,
@@ -74,7 +81,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
-  }
   } catch (err) {
     console.error('Generate API error:', err);
     const message = err instanceof Error ? err.message : 'Unknown error';
