@@ -190,7 +190,7 @@ THE FIX: Only mention skills in the topic sentence that you can PROVE with speci
 
 Format the letter with:
 1. Contact information header (your name, email, phone, address)
-2. Company name with the address under it; if a hiring manager is provided, include them in the company address block (e.g. "Attn: [Name]" in English, or "z.Hd. Herrn/Frau [Name]" in German).
+2. Recipient block: if a hiring manager is provided, put them FIRST (e.g. "Attn: [Name]" in English, or "z.Hd. Herrn/Frau [Name]" in German), then company name with address under it.
 3. Title
 4. Greeting/Introduction (should preview the main qualifications discussed in body)
 5. Body paragraphs (EXACTLY 2 paragraphs with smooth transitions)

@@ -215,7 +215,7 @@ async function stage3GenerateLetter(
 
   const langInstructions: Record<string, string> = {
     en: 'Write in English.',
-    de: 'Write in German (Deutsch). Use formal business German. For German letters: put your address (Absender) top right; put company address (Empfänger) on the left with the contact person on the second line (e.g. "z.Hd. Herrn/Frau [Name]"). Do NOT repeat your name, address, or phone at the bottom—only your handwritten signature line (your name) under the closing.',
+    de: 'Write in German (Deutsch). Use formal business German. For German letters: put your address (Absender) top right; put the recipient block on the left with the contact person FIRST (e.g. "z.Hd. Herrn/Frau [Name]"), then company name and address below. Do NOT repeat your name, address, or phone at the bottom—only your handwritten signature line (your name) under the closing.',
     fr: 'Write in French (Français). Use formal business French.',
     es: 'Write in Spanish (Español). Use formal business Spanish.',
     it: 'Write in Italian (Italiano). Use formal business Italian.',
@@ -225,7 +225,7 @@ async function stage3GenerateLetter(
   };
   const langInstr = langInstructions[language] ?? langInstructions.en;
 
-  const system = `Write a one-page cover letter (300–400 words). ${langInstr} Tone: ${tone}. Use only the evidence listed below; do not add skills or experiences not in the list. Format: business letter with contact block at top, then date, then company name and address (if provided). If a hiring manager or contact person is provided, include them in the company address block (e.g. "Attn: [Name]" in English, or "z.Hd. Herrn/Frau [Name]" in German on the line above or below the company address). Then greeting, two body paragraphs, closing, signature (your name only—do not repeat your full address or phone at the bottom). First paragraph: evidence items in order; second paragraph: next items. In the letter header you MUST use the exact candidate name, email, phone, and address/location provided—no placeholders. Use the date provided. Use the company name and job title from the job summary; if company address is provided, use it; if hiring manager is provided, include them in the recipient/address block.`;
+  const system = `Write a one-page cover letter (300–400 words). ${langInstr} Tone: ${tone}. Use only the evidence listed below; do not add skills or experiences not in the list. Format: business letter with contact block at top, then date, then the recipient block. In the recipient block put the hiring manager or contact person FIRST (e.g. "Attn: [Name]" in English, or "z.Hd. Herrn/Frau [Name]" in German), then company name and address below. Then greeting, two body paragraphs, closing, signature (your name only—do not repeat your full address or phone at the bottom). First paragraph: evidence items in order; second paragraph: next items. In the letter header you MUST use the exact candidate name, email, phone, and address/location provided—no placeholders. Use the date provided. Use the company name and job title from the job summary; if hiring manager is provided, put them first in the recipient block; then company name and address if provided.`;
 
   let user = `Candidate contact (use these exact values in the letter header and signature):\n${contactBlock}\n\nDate to use: ${today}\n\nJob summary:\n${jobSummary}\n\nEvidence (use only these):\n${evidenceList || '(none)'}`;
   if (sampleLetter) {
@@ -304,12 +304,10 @@ export async function runPipeline(input: PipelineInput): Promise<PipelineOutput>
     normalized.tone,
     normalized.sampleLetter
   );
-  const validation = await stage4Validate(openai, content, evidenceMap);
-
+  // Skip stage 4 (validation) to stay within Vercel 10s serverless limit
   return {
     content,
     language: normalized.language,
     evidenceMap,
-    validation,
   };
 }
